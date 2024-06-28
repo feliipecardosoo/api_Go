@@ -1,24 +1,26 @@
-package main
+package bd
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 
 	_ "github.com/go-sql-driver/mysql"
 )
 
-func main() {
+// ConexaoBD faz a minha conexao com o banco de dados
+func ConexaoBD() (*sql.DB, error) {
 	stringconn := "golang:3103@/devbook?charset=utf8&parseTime=True&loc=Local"
+
 	db, erro := sql.Open("mysql", stringconn)
 	if erro != nil {
 		log.Fatal(erro)
+		return nil, erro
 	}
-	defer db.Close()
 
 	if erro = db.Ping(); erro != nil {
 		log.Fatal(erro)
+		return nil, erro
 	}
 
-	fmt.Println("Conexao está aberta!")
+	return db, nil
 }
