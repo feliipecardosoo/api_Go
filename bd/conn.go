@@ -9,7 +9,7 @@ import (
 
 // ConexaoBD faz a minha conexao com o banco de dados
 func ConexaoBD() (*sql.DB, error) {
-	stringconn := "golang:3103@/devbook?charset=utf8&parseTime=True&loc=Local"
+	stringconn := "root:3103@/devbook?charset=utf8&parseTime=True&loc=Local"
 
 	db, erro := sql.Open("mysql", stringconn)
 	if erro != nil {
