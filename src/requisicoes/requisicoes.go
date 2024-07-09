@@ -115,3 +115,45 @@ func RetornarUsuario(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write(usuarioJSON)
 }
+
+func RetornarAll(w http.ResponseWriter, r *http.Request) {
+	// Conectar no banco de dados
+	db, err := bd.ConexaoBD()
+	if err != nil {
+		w.Write([]byte("Erro ao conectar no banco de dados"))
+		return
+	}
+	defer db.Close()
+
+	// Executar a Query
+	rows, err := db.Query("SELECT * FROM usuarios")
+	if err != nil {
+		w.Write([]byte("Erro ao executar query no banco de dados"))
+		return
+	}
+	defer rows.Close()
+
+	var usuarios []usuario
+
+	// Iterar sobre os resultados
+	for rows.Next() {
+		var usuario usuario
+		if err := rows.Scan(&usuario.ID, &usuario.Nome, &usuario.Email); err != nil {
+			w.Write([]byte("Erro ao escanear os resultados"))
+			return
+		}
+		usuarios = append(usuarios, usuario)
+	}
+
+	if err = rows.Err(); err != nil {
+		w.Write([]byte("Erro ao iterar os resultados"))
+		return
+	}
+
+	// Retornar a resposta em JSON
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(usuarios); err != nil {
+		w.Write([]byte("Erro ao converter os resultados para JSON"))
+		return
+	}
+}
