@@ -12,16 +12,20 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func CriarUsuario(w http.ResponseWriter, r *http.Request) {
+type Usuario struct {
+	Nome  string `json:"nome"`
+	Email string `json:"email"`
+}
 
-	// Resgatando valores body
+func CriarUsuario(w http.ResponseWriter, r *http.Request) {
+	// Resgatando body
 	bodyReq, erro := ioutil.ReadAll(r.Body)
 	if erro != nil {
 		w.Write([]byte("Falha ao ler o corpo da requisicao"))
 		return
 	}
 
-	var usuario usuario
+	var usuario Usuario
 
 	// Converter os valores de byte para struct
 	if erro = json.Unmarshal(bodyReq, &usuario); erro != nil {
@@ -32,7 +36,7 @@ func CriarUsuario(w http.ResponseWriter, r *http.Request) {
 	// Fazendo conexao banco de dados
 	db, erro := bd.ConexaoBD()
 	if erro != nil {
-		w.Write([]byte("Erro ao insert no banco de dados"))
+		w.Write([]byte("Erro ao conectar com o banco de dados"))
 		return
 	}
 	defer db.Close()
@@ -156,4 +160,33 @@ func RetornarAll(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Erro ao converter os resultados para JSON"))
 		return
 	}
+}
+
+func EditarUsuario(w http.ResponseWriter, r *http.Request) {
+	// Capturar informacao do usuario do header
+	vars := mux.Vars(r)
+	idStr := vars["id"]
+	// Convertendo para string
+	id, erro := strconv.Atoi(idStr)
+	if erro != nil {
+		http.Error(w, "ID inválido", http.StatusBadRequest)
+		return
+	}
+	// Fazendo conexao banco de dados
+	db, erro := bd.ConexaoBD()
+	if erro != nil {
+		http.Error(w, "Erro ao conectar no banco de dados", http.StatusInternalServerError)
+		return
+	}
+	defer db.Close()
+	// fazer a minha query
+	statement, erro := db.Prepare("SELECT * FROM usuarios WHERE id = ?")
+	if erro != nil {
+		http.Error(w, "Erro ao criar statement", http.StatusInternalServerError)
+		return
+	}
+	defer statement.Close()
+	// executar a quey
+
+	// retornar usuario como resposta
 }
