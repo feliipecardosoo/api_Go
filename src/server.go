@@ -9,6 +9,8 @@ import (
 	"github.com/gorilla/mux"
 )
 
+//teste
+
 // Server subo o servido
 func Server() {
 	router := mux.NewRouter()
