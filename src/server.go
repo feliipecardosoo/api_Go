@@ -20,6 +20,7 @@ func Server() {
 	// Resgatando Usuario por ID
 	router.HandleFunc("/usuarios/{id}", requisicoes.RetornarUsuario).Methods(http.MethodGet)
 	// Editando Usuario
+	router.HandleFunc("/usuarios/edit/{id}", requisicoes.EditarUsuario).Methods(http.MethodGet)
 
 	// Deletando Usuario
 

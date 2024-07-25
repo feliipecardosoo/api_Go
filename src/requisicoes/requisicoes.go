@@ -166,28 +166,64 @@ func EditarUsuario(w http.ResponseWriter, r *http.Request) {
 	// Capturar informacao do usuario do header
 	vars := mux.Vars(r)
 	idStr := vars["id"]
-	// Convertendo para string
+	// Convertendo para inteiro
 	id, erro := strconv.Atoi(idStr)
 	if erro != nil {
 		http.Error(w, "ID inválido", http.StatusBadRequest)
 		return
 	}
-	// Fazendo conexao banco de dados
+
+	// Fazendo conexão com o banco de dados
 	db, erro := bd.ConexaoBD()
 	if erro != nil {
 		http.Error(w, "Erro ao conectar no banco de dados", http.StatusInternalServerError)
 		return
 	}
 	defer db.Close()
-	// fazer a minha query
-	statement, erro := db.Prepare("SELECT * FROM usuarios WHERE id = ?")
+
+	// Parseando o corpo da requisição para obter os dados a serem atualizados
+	var usuario struct {
+		Nome  string `json:"nome"`
+		Email string `json:"email"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&usuario); err != nil {
+		http.Error(w, "Erro ao decodificar o corpo da requisição", http.StatusBadRequest)
+		return
+	}
+
+	// Fazer a query de UPDATE
+	statement, erro := db.Prepare(`
+		UPDATE usuarios
+		SET nome = ?, email = ?
+		WHERE id = ?
+	`)
 	if erro != nil {
 		http.Error(w, "Erro ao criar statement", http.StatusInternalServerError)
 		return
 	}
 	defer statement.Close()
-	fmt.Print(id)
-	// executar a quey
 
-	// retornar usuario como resposta
+	// Executar a query de UPDATE
+	resultado, erro := statement.Exec(usuario.Nome, usuario.Email, id)
+	if erro != nil {
+		http.Error(w, "Erro ao executar a query de update", http.StatusInternalServerError)
+		return
+	}
+
+	// Verificar quantas linhas foram afetadas
+	numLinhasAfetadas, erro := resultado.RowsAffected()
+	if erro != nil {
+		http.Error(w, "Erro ao obter número de linhas afetadas", http.StatusInternalServerError)
+		return
+	}
+
+	// Verificar se algum registro foi atualizado
+	if numLinhasAfetadas == 0 {
+		http.Error(w, "Nenhum usuário encontrado para atualizar", http.StatusNotFound)
+		return
+	}
+
+	// Retornar resposta de sucesso
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Usuário atualizado com sucesso"))
 }
