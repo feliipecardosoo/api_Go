@@ -186,6 +186,7 @@ func EditarUsuario(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer statement.Close()
+	fmt.Print(id)
 	// executar a quey
 
 	// retornar usuario como resposta
